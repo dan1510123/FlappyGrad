@@ -6,7 +6,6 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var player : SKSpriteNode!
     
     let pipeSpeed : CGFloat = 1
-    let pipeScale : CGFloat = 3
     let pipeYGap : CGFloat = 120
     let maxPipeDiff : CGFloat = 140
     let maxPipeDownHeight : CGFloat = 330
@@ -95,18 +94,18 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         let pipeDown = spawnPipe(pipeTexture: pipeDownTexture, yPos: pipeDownHeight)
         pipeSet.addChild(pipeDown)
         
-        let pipeMid = spawnPipe(pipeTexture: pipeMidTexture, yPos: pipeDownHeight - CGFloat(pipeScale * pipeDownTexture.size().height / 2) - pipeYGap - CGFloat(pipeScale * pipeMidTexture.size().height / 2))
+        let pipeMid = spawnPipe(pipeTexture: pipeMidTexture, yPos: pipeDownHeight - CGFloat(pipeDownTexture.size().height / 2) - pipeYGap - CGFloat(pipeMidTexture.size().height / 2))
         pipeSet.addChild(pipeMid)
         
-        let pipeUp = spawnPipe(pipeTexture: pipeUpTexture, yPos: pipeDownHeight - CGFloat(pipeScale * pipeDownTexture.size().height / 2) - pipeMid.size.height - 2 * pipeYGap - CGFloat(pipeScale * pipeUpTexture.size().height / 2))
+        let pipeUp = spawnPipe(pipeTexture: pipeUpTexture, yPos: pipeDownHeight - CGFloat(pipeDownTexture.size().height / 2) - pipeMid.size.height - 2 * pipeYGap - CGFloat(pipeUpTexture.size().height / 2))
         pipeSet.addChild(pipeUp)
         
         /* Add the slots to the pipe set */
         let rand = arc4random_uniform(2)
-        let topSlot = spawnSlot(success: rand == 0, yPos: pipeDownHeight - CGFloat(pipeScale * pipeDownTexture.size().height / 2) - 80)
+        let topSlot = spawnSlot(success: rand == 0, yPos: pipeDownHeight - CGFloat(pipeDownTexture.size().height / 2) - 80)
         pipeSet.addChild(topSlot)
         
-        let bottomSlot = spawnSlot(success: rand == 1, yPos: pipeDownHeight - CGFloat(pipeScale * pipeDownTexture.size().height / 2) - pipeScale * pipeMidTexture.size().height - 190)
+        let bottomSlot = spawnSlot(success: rand == 1, yPos: pipeDownHeight - CGFloat(pipeDownTexture.size().height / 2) -  pipeMidTexture.size().height - 190)
         pipeSet.addChild(bottomSlot)
         
         pipeSet.run(movePipesThenRemove)
@@ -115,7 +114,6 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     
     private func spawnPipe(pipeTexture : SKTexture, yPos : CGFloat) -> SKSpriteNode {
         let pipe = SKSpriteNode(texture: pipeTexture)
-        pipe.setScale(pipeScale)
         pipe.position = CGPoint(x: 0, y: yPos)
         pipe.physicsBody = SKPhysicsBody(rectangleOf: pipe.size)
         pipe.physicsBody?.affectedByGravity = false
@@ -181,7 +179,6 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     
     private func showLevelGuide() {
         scroll = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "scrollwithlogos.png")))
-        scroll.setScale(3.5)
         scroll.zPosition = -5
         scroll.position = CGPoint(x: frame.midX + 250, y: frame.midY)
         addChild(scroll)
@@ -339,12 +336,12 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
             case "M.D. Ph.D.":
                 titleIcon = SKTexture(image: #imageLiteral(resourceName: "mdphd.png"))
             case "** Zoom Lord **":
-                titleIcon = SKTexture(image: #imageLiteral(resourceName: "zoomlord.png"))
+                titleIcon = SKTexture(image: #imageLiteral(resourceName: "zoomlord2.png"))
             default:
                 titleIcon = SKTexture(image: #imageLiteral(resourceName: "ugs.png"))
         }
         var titleSprite = SKSpriteNode(texture: titleIcon)
-        titleSprite.setScale(5)
+        titleSprite.setScale(2.5)
         titleSprite.zPosition = 10
         titleSprite.position = CGPoint(x: frame.midX, y: frame.midY)
         addChild(titleSprite)
