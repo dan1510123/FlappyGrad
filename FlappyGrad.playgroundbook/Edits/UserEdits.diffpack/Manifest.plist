@@ -28,6 +28,10 @@
 				<key>File</key>
 				<string>UserModules/UserModule.playgroundmodule/Sources/GameScene.swift</string>
 			</dict>
+			<dict>
+				<key>File</key>
+				<string>UserModules/UserModule.playgroundmodule/Sources/Bitmasks.swift</string>
+			</dict>
 		</array>
 		<key>Modified</key>
 		<array>

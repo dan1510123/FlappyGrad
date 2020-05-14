@@ -13,14 +13,16 @@ let skView = SKView(frame: .zero)
 
 let gameScene = GameScene(size: UIScreen.main.bounds.size)
 gameScene.scaleMode = .aspectFill
-skView.addSubview(gameScene.getTextField())
+skView.addSubview(gameScene.getCenterTextField())
+skView.addSubview(gameScene.getScoreTextField())
+skView.addSubview(gameScene.getDegreeLevelTextField())
 skView.presentScene(gameScene)
 
 PlaygroundPage.current.liveView = skView
 PlaygroundPage.current.wantsFullScreenLiveView = true
 </string>
 			<key>ModifiedRange</key>
-			<string>{0, 342}</string>
+			<string>{0, 452}</string>
 			<key>OriginalContent</key>
 			<string>
 </string>
