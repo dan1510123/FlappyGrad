@@ -26,6 +26,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var pipeDownTexture : SKTexture!
     var pipeUpTexture : SKTexture!
     var pipeMidTexture : SKTexture!
+    var virus : SKSpriteNode!
     
     var problems = [Problem]()
     
@@ -48,7 +49,11 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         pipeUpTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_up.png"))
         pipeMidTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_middle.png"))
         
+        scoreTextField.isEditable = false
+        centerTextField.isEditable = false
+        levelGuideTextField.isEditable = false
         showLevelGuide()
+        setupCenterTextField()
         setupScoreTextField()
         setBackground() // Set background
         createPlayer() // Create player
@@ -128,19 +133,36 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         slot.position = CGPoint(x: 0, y: yPos)
         slot.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 1, height: pipeYGap))
         slot.physicsBody?.affectedByGravity = false
+        slot.physicsBody?.isDynamic = false
         slot.physicsBody?.categoryBitMask = success ? Bitmask.successSlot : Bitmask.failSlot
-        slot.physicsBody?.collisionBitMask = 0
+        slot.physicsBody?.collisionBitMask = success ? 0 : Bitmask.player   
         slot.physicsBody?.contactTestBitMask = Bitmask.player
         return slot
     }
     
     private func setupCenterTextField() {
         let textFieldWidth : CGFloat = 500
-        let textFieldHeight : CGFloat = 150
-        centerTextField.frame = CGRect(x: frame.midX - 100, y: frame.midY - CGFloat(textFieldHeight / 2) - 203, width: textFieldWidth, height: textFieldHeight)
+        let textFieldHeight : CGFloat = 300
+        centerTextField.frame = CGRect(x: frame.midX - 400, y: frame.midY + 250, width: textFieldWidth, height: textFieldHeight)
         centerTextField.textAlignment = .center
         centerTextField.backgroundColor = UIColor.red
         centerTextField.text = "Hello"
+    }
+    
+    private func gameOverCenterTextField() {
+        let textFieldWidth : CGFloat = 300
+        let textFieldHeight : CGFloat = 120
+        centerTextField.frame = CGRect(x: frame.midX, y: frame.midY + 300, width: textFieldWidth, height: textFieldHeight)
+        centerTextField.textAlignment = .center
+        centerTextField.backgroundColor = UIColor.gray
+        centerTextField.textColor = UIColor.white
+        centerTextField.font = UIFont.systemFont(ofSize: 20)
+        if currentTitle == "Undergrad Senior" {
+            centerTextField.text = "Unfortunately, you were unable to graduate. Better brush up on those math skills.\nBetter luck next time!"
+        }
+        else {
+            centerTextField.text = "Congratulations! You have graduated with a " + currentTitle + " before falling victim to the virus"
+        }
     }
     
     private func setupProblemInCenterTextField() {
@@ -170,12 +192,16 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         levelGuideTextField.frame = CGRect(x: frame.midX + 470, y: frame.midY - 130, width: textFieldWidth, height: textFieldHeight)
         levelGuideTextField.font = UIFont(name: "Papyrus", size: 30)
         levelGuideTextField.backgroundColor = nil
-        levelGuideTextField.text = "LEGENDARY\nGRAD REQS\n\n" + "Undergrad Senior  0\n\n" + "B.S. Degree             15\n\n" + "M.S. Degree           30\n\n" + "Ph.D.                         50\n\n" + "M.D. Ph.D.             100\n\n" + "Zoom Lord           200"
+        levelGuideTextField.text = "LEGENDARY\nGRAD REQS\n\n" + "Undergrad Senior  0\n\n" + "     B.S. Degree        15\n\n" + "     M.S. Degree      30\n\n" + "           Ph.D.              50\n\n" + "      M.D. Ph.D.       100\n\n" + "   * Zoom Lord *    200"
     }
     
     private func hideLevelGuide() {
-        scroll.removeFromParent()
         levelGuideTextField.isHidden = true
+        let distanceToMove = CGFloat(scroll.size.width + 10)
+        let moveScroll = SKAction.moveBy(x: distanceToMove, y:0.0, duration:TimeInterval(1.5))
+        let destroyScroll = SKAction.removeFromParent()
+        let moveScrollThenRemove = SKAction.sequence([moveScroll, destroyScroll])
+        scroll.run(moveScrollThenRemove)
     }
     
     private func setupScoreTextField() {
@@ -199,6 +225,20 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         bg.zPosition = -10
         bg.position = CGPoint(x: frame.midX, y: frame.midY)
         addChild(bg)
+        
+        // Virus texture
+        let v1 = SKTexture(image: #imageLiteral(resourceName: "virus.png"))
+        let v2 = SKTexture(image: #imageLiteral(resourceName: "virus2.png"))
+        let v3 = SKTexture(image: #imageLiteral(resourceName: "virus3.png"))
+        
+        virus = SKSpriteNode(texture: v1)
+        virus.setScale(1)
+        virus.zPosition = 10
+        virus.position = CGPoint(x: frame.midX - 400, y: frame.midY)
+        let virusAnimate = SKAction.animate(with: [v1, v2, v3], timePerFrame: 0.3)
+        let virusAnimateForever = SKAction.repeatForever(virusAnimate)
+        virus.run(virusAnimateForever)
+        addChild(virus)
     }
     
     private func createPlayer() {
@@ -279,11 +319,41 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
                 // Stop gameplay
                 game.speed = 0
                 removeAllActions()
+                gameOverActions()
             }
             else {
                 
             }
         }
+    }
+    
+    private func gameOverActions() {
+        var titleIcon : SKTexture!
+        switch(currentTitle) {
+            case "B.S. Degree":
+            titleIcon = SKTexture(image: #imageLiteral(resourceName: "bsd.png"))
+            case "M.S. Degree":
+                titleIcon = SKTexture(image: #imageLiteral(resourceName: "msd.png"))
+            case "Ph.D.":
+                titleIcon = SKTexture(image: #imageLiteral(resourceName: "phd.png"))
+            case "M.D. Ph.D.":
+                titleIcon = SKTexture(image: #imageLiteral(resourceName: "mdphd.png"))
+            case "** Zoom Lord **":
+                titleIcon = SKTexture(image: #imageLiteral(resourceName: "zoomlord.png"))
+            default:
+                titleIcon = SKTexture(image: #imageLiteral(resourceName: "ugs.png"))
+        }
+        var titleSprite = SKSpriteNode(texture: titleIcon)
+        titleSprite.setScale(5)
+        titleSprite.zPosition = 10
+        titleSprite.position = CGPoint(x: frame.midX, y: frame.midY)
+        addChild(titleSprite)
+        
+        let distanceToMove = CGFloat(120)
+        let moveVirus = SKAction.moveBy(x: distanceToMove, y:0.0, duration:TimeInterval(3))
+        virus.run(moveVirus)
+        
+        gameOverCenterTextField()
     }
     
     public func getScoreTextField() -> UITextView {
