@@ -34,9 +34,9 @@ public class Problem {
             return result() + y
             case 4:
             return result() - y
-        case 5:
+            case 5:
             return result() + Int.random(in: 1..<11)
-        case 6:
+            case 6:
             return result() + Int.random(in: -10..<0)
             default:
             return 0

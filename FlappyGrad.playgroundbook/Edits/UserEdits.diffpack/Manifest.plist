@@ -34,11 +34,11 @@
 			</dict>
 			<dict>
 				<key>File</key>
-				<string>UserModules/UserModule.playgroundmodule/Sources/RunGame.swift</string>
+				<string>UserModules/UserModule.playgroundmodule/Sources/Problem.swift</string>
 			</dict>
 			<dict>
 				<key>File</key>
-				<string>UserModules/UserModule.playgroundmodule/Sources/Problem.swift</string>
+				<string>UserModules/UserModule.playgroundmodule/Sources/Main.swift</string>
 			</dict>
 		</array>
 		<key>Modified</key>

@@ -6,6 +6,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var player : SKSpriteNode!
     
     let pipeSpeed : CGFloat = 1
+    let pipeScale : CGFloat = 3
     let pipeYGap : CGFloat = 120
     let maxPipeDiff : CGFloat = 140
     let maxPipeDownHeight : CGFloat = 330
@@ -15,11 +16,12 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var currentTitle : String = "Undergrad Senior"
     var scoreTextField : UITextView = UITextView()
     var centerTextField : UITextView = UITextView()
-    var degreeLevelTextField : UITextView = UITextView()
+    var levelGuideTextField : UITextView = UITextView()
+    var scroll : SKSpriteNode!
     var game : SKNode!
     var firstTouch : Bool = false
     
-    var birdTexture1 : SKTexture!
+    var birdTexture1 : SKTexture! 
     var birdTexture2 : SKTexture!
     var pipeDownTexture : SKTexture!
     var pipeUpTexture : SKTexture!
@@ -46,15 +48,15 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         pipeUpTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_up.png"))
         pipeMidTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_middle.png"))
         
-        initDegreeLevelTextField()
-        updateScoreTextField()
+        showLevelGuide()
+        setupScoreTextField()
         setBackground() // Set background
         createPlayer() // Create player
     }
     
     private func beginPipeSpawnRepeat() {
-        let delaySpawn = SKAction.wait(forDuration: TimeInterval(1.5))
-        let spawnOnePipeSet = SKAction.run(spawnPipes)
+        let delaySpawn = SKAction.wait(forDuration: TimeInterval(2))
+        let spawnOnePipeSet = SKAction.run(spawnPipeSet)
         let spawnThenDelay = SKAction.sequence([delaySpawn, spawnOnePipeSet])
         let spawnThenDelayForever = SKAction.repeatForever(spawnThenDelay)
         run(spawnThenDelayForever)
@@ -74,10 +76,9 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         updateProblemInCenterTextField()
     }
     
-    private func spawnPipes() {
+    private func spawnPipeSet() {
         generateProblem()
         
-        let scale : CGFloat = 3
         let pipeSet = SKNode()
         pipeSet.position = CGPoint(x: frame.midX + 450, y: frame.midY)
         pipeSet.zPosition = 0
@@ -85,63 +86,52 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         // Set starting height of pipe set at random
         let pipeDownHeight = maxPipeDownHeight - CGFloat(arc4random_uniform(UInt32(maxPipeDiff)))
         
-        let pipeDown = SKSpriteNode(texture: pipeDownTexture)
-        pipeDown.setScale(scale)
-        pipeDown.position = CGPoint(x: 0, y: pipeDownHeight)
-        pipeDown.physicsBody = SKPhysicsBody(rectangleOf: pipeDown.size)
-        pipeDown.physicsBody?.affectedByGravity = false
-        pipeDown.physicsBody?.isDynamic = false
-        pipeDown.physicsBody?.categoryBitMask = Bitmask.pipe
-        pipeDown.physicsBody?.collisionBitMask = Bitmask.player
-        pipeDown.physicsBody?.contactTestBitMask = Bitmask.player
+        /* Add the pipes to the pipe set */
+        let pipeDown = spawnPipe(pipeTexture: pipeDownTexture, yPos: pipeDownHeight)
         pipeSet.addChild(pipeDown)
         
-        let rand = arc4random_uniform(2)
-        let topSlot = SKLabelNode()
-        topSlot.fontSize = 40
-        topSlot.text = rand == 0 ? String(problems[problems.count - 1].result()) : String(problems[problems.count - 1].badResult())
-        topSlot.position = CGPoint(x: 0, y: pipeDownHeight - CGFloat(pipeDown.size.height / 2) - 80)
-        topSlot.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 1, height: pipeYGap))
-        topSlot.physicsBody?.affectedByGravity = false
-        topSlot.physicsBody?.categoryBitMask = rand == 0 ? Bitmask.successSlot : Bitmask.failSlot
-        topSlot.physicsBody?.collisionBitMask = 0
-        topSlot.physicsBody?.contactTestBitMask = Bitmask.player
-        pipeSet.addChild(topSlot)
-        
-        let pipeMid = SKSpriteNode(texture: pipeMidTexture)
-        pipeMid.setScale(scale)
-        pipeMid.position = CGPoint(x: 0, y: pipeDownHeight - CGFloat(pipeDown.size.height / 2) - pipeYGap - CGFloat(pipeMid.size.height / 2)) 
-        pipeMid.physicsBody = SKPhysicsBody(rectangleOf: pipeMid.size)
-        pipeMid.physicsBody?.affectedByGravity = false
-        pipeMid.physicsBody?.isDynamic = false
-        pipeMid.physicsBody?.categoryBitMask = Bitmask.pipe
-        pipeMid.physicsBody?.collisionBitMask = Bitmask.player
-        pipeMid.physicsBody?.contactTestBitMask = Bitmask.player
+        let pipeMid = spawnPipe(pipeTexture: pipeMidTexture, yPos: pipeDownHeight - CGFloat(pipeScale * pipeDownTexture.size().height / 2) - pipeYGap - CGFloat(pipeScale * pipeMidTexture.size().height / 2))
         pipeSet.addChild(pipeMid)
         
-        let bottomSlot = SKLabelNode()
-        bottomSlot.fontSize = 40
-        bottomSlot.text = rand == 1 ? String(problems[problems.count - 1].result()) : String(problems[problems.count - 1].badResult())
-        bottomSlot.position = CGPoint(x: 0, y: pipeDownHeight - CGFloat(pipeDown.size.height / 2) -  pipeMid.size.height - 190)
-        bottomSlot.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 1, height: pipeYGap))
-        bottomSlot.physicsBody?.affectedByGravity = false
-        bottomSlot.physicsBody?.categoryBitMask = rand == 1 ? Bitmask.successSlot : Bitmask.failSlot
-        bottomSlot.physicsBody?.collisionBitMask = 0
-        bottomSlot.physicsBody?.contactTestBitMask = Bitmask.player
+        let pipeUp = spawnPipe(pipeTexture: pipeUpTexture, yPos: pipeDownHeight - CGFloat(pipeScale * pipeDownTexture.size().height / 2) - pipeMid.size.height - 2 * pipeYGap - CGFloat(pipeScale * pipeUpTexture.size().height / 2))
+        pipeSet.addChild(pipeUp)
+        
+        /* Add the slots to the pipe set */
+        let rand = arc4random_uniform(2)
+        let topSlot = spawnSlot(success: rand == 0, yPos: pipeDownHeight - CGFloat(pipeScale * pipeDownTexture.size().height / 2) - 80)
+        pipeSet.addChild(topSlot)
+        
+        let bottomSlot = spawnSlot(success: rand == 1, yPos: pipeDownHeight - CGFloat(pipeScale * pipeDownTexture.size().height / 2) - pipeScale * pipeMidTexture.size().height - 190)
         pipeSet.addChild(bottomSlot)
         
-        let pipeUp = SKSpriteNode(texture: pipeUpTexture)
-        pipeUp.setScale(scale)
-        pipeUp.position = CGPoint(x: 0, y: pipeDownHeight - CGFloat(pipeDown.size.height / 2) - pipeMid.size.height - 2 * pipeYGap - CGFloat(pipeUp.size.height / 2))
-        pipeUp.physicsBody = SKPhysicsBody(rectangleOf: pipeUp.size)
-        pipeUp.physicsBody?.affectedByGravity = false
-        pipeUp.physicsBody?.isDynamic = false
-        pipeUp.physicsBody?.categoryBitMask = Bitmask.pipe
-        pipeUp.physicsBody?.collisionBitMask = Bitmask.player
-        pipeUp.physicsBody?.contactTestBitMask = Bitmask.player
-        pipeSet.addChild(pipeUp)
         pipeSet.run(movePipesThenRemove)
         game.addChild(pipeSet)
+    }
+    
+    private func spawnPipe(pipeTexture : SKTexture, yPos : CGFloat) -> SKSpriteNode {
+        let pipe = SKSpriteNode(texture: pipeTexture)
+        pipe.setScale(pipeScale)
+        pipe.position = CGPoint(x: 0, y: yPos)
+        pipe.physicsBody = SKPhysicsBody(rectangleOf: pipe.size)
+        pipe.physicsBody?.affectedByGravity = false
+        pipe.physicsBody?.isDynamic = false
+        pipe.physicsBody?.categoryBitMask = Bitmask.pipe
+        pipe.physicsBody?.collisionBitMask = Bitmask.player
+        pipe.physicsBody?.contactTestBitMask = Bitmask.player
+        return pipe
+    }
+    
+    private func spawnSlot(success: Bool, yPos: CGFloat) -> SKLabelNode {
+        let slot = SKLabelNode()
+        slot.fontSize = 40
+        slot.text = success ? String(problems[problems.count - 1].result()) : String(problems[problems.count - 1].badResult())
+        slot.position = CGPoint(x: 0, y: yPos)
+        slot.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 1, height: pipeYGap))
+        slot.physicsBody?.affectedByGravity = false
+        slot.physicsBody?.categoryBitMask = success ? Bitmask.successSlot : Bitmask.failSlot
+        slot.physicsBody?.collisionBitMask = 0
+        slot.physicsBody?.contactTestBitMask = Bitmask.player
+        return slot
     }
     
     private func setupCenterTextField() {
@@ -153,33 +143,53 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         centerTextField.text = "Hello"
     }
     
-    private func updateProblemInCenterTextField() {
+    private func setupProblemInCenterTextField() {
         let textFieldWidth : CGFloat = 500
         let textFieldHeight : CGFloat = 100
         centerTextField.frame = CGRect(x: frame.midX - 100, y: frame.midY - CGFloat(textFieldHeight / 2) - 250, width: textFieldWidth, height: textFieldHeight)
         centerTextField.textAlignment = .center
         centerTextField.font = UIFont.boldSystemFont(ofSize: 70)
         centerTextField.backgroundColor = UIColor.cyan
+        centerTextField.text = ""
+    }
+    
+    private func updateProblemInCenterTextField() {
         centerTextField.text = problems[0].toString()
     }
     
-    private func initDegreeLevelTextField() {
+    private func showLevelGuide() {
+        scroll = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "scrollwithlogos.png")))
+        scroll.setScale(3.5)
+        scroll.zPosition = -5
+        scroll.position = CGPoint(x: frame.midX + 250, y: frame.midY)
+        addChild(scroll)
+        
+        levelGuideTextField.isHidden = false
         let textFieldWidth : CGFloat = 300
-        let textFieldHeight : CGFloat = 650
-        degreeLevelTextField.frame = CGRect(x: frame.midX + 500, y: frame.midY - 275, width: textFieldWidth, height: textFieldHeight)
-        degreeLevelTextField.backgroundColor = UIColor.brown
-        degreeLevelTextField.font = UIFont.boldSystemFont(ofSize: 25)
-        degreeLevelTextField.text = "\nLEVEL GUIDE\n\n" + "Undergrad Senior   0\n\n" + "B.S. Degree              15\n\n" + "M.S. Degree            30\n\n" + "Ph.D.                           50\n\n" + "M.D. Ph.D.              100\n\n" + "Zoom Lord            200"
+        let textFieldHeight : CGFloat = 680
+        levelGuideTextField.frame = CGRect(x: frame.midX + 470, y: frame.midY - 130, width: textFieldWidth, height: textFieldHeight)
+        levelGuideTextField.font = UIFont(name: "Papyrus", size: 30)
+        levelGuideTextField.backgroundColor = nil
+        levelGuideTextField.text = "LEGENDARY\nGRAD REQS\n\n" + "Undergrad Senior  0\n\n" + "B.S. Degree             15\n\n" + "M.S. Degree           30\n\n" + "Ph.D.                         50\n\n" + "M.D. Ph.D.             100\n\n" + "Zoom Lord           200"
+    }
+    
+    private func hideLevelGuide() {
+        scroll.removeFromParent()
+        levelGuideTextField.isHidden = true
+    }
+    
+    private func setupScoreTextField() {
+        let textFieldWidth : CGFloat = 400
+        let textFieldHeight : CGFloat = 200
+        scoreTextField.frame = CGRect(x: frame.midX - 550, y: frame.midY - CGFloat(textFieldHeight / 2) - 200, width: textFieldWidth, height: textFieldHeight)
+        scoreTextField.textAlignment = .center
+        scoreTextField.backgroundColor = UIColor.blue
+        scoreTextField.font = UIFont.boldSystemFont(ofSize: 42)
+        updateScoreTextField()
     }
     
     private func updateScoreTextField() {
-        let textFieldWidth : CGFloat = 360
-        let textFieldHeight : CGFloat = 150
-        scoreTextField.frame = CGRect(x: frame.midX - 470, y: frame.midY - CGFloat(textFieldHeight / 2) - 230, width: textFieldWidth, height: textFieldHeight)
-        scoreTextField.textAlignment = .center
-        scoreTextField.backgroundColor = UIColor.blue
-        scoreTextField.font = UIFont.boldSystemFont(ofSize: 35)
-        scoreTextField.text = String(zoomScore) + " Zoom Credits\n" + currentTitle
+        scoreTextField.text = "Zoom Credits\n" + String(zoomScore) + "\n" + currentTitle
     }
     
     private func setBackground() {
@@ -226,6 +236,8 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
             game.speed = 1
             setupPipeMovement()
             beginPipeSpawnRepeat()
+            setupProblemInCenterTextField()
+            hideLevelGuide()
         }
         if game.speed > 0 {
             player.physicsBody?.affectedByGravity = true
@@ -282,8 +294,8 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         return centerTextField
     }
     
-    public func getDegreeLevelTextField() -> UITextView {
-        return degreeLevelTextField
+    public func getLevelGuideTextField() -> UITextView {
+        return levelGuideTextField
     }
 }
 
