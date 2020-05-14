@@ -6,9 +6,10 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var player : SKSpriteNode!
     
     let pipeSpeed : CGFloat = 1
-    let pipeYGap : CGFloat = 100
-    let maxPipeDownHeight : CGFloat = 240
-    let maxPipeDiff : CGFloat = 100
+    let pipeYGap : CGFloat = 120
+    let maxPipeDiff : CGFloat = 140
+    let maxPipeDownHeight : CGFloat = 330
+    var movePipesThenRemove : SKAction!
     
     var zoomScore : Int = 0
     var currentTitle : String = "Undergrad Senior"
@@ -16,12 +17,15 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var centerTextField : UITextView = UITextView()
     var degreeLevelTextField : UITextView = UITextView()
     var game : SKNode!
+    var firstTouch : Bool = false
     
     var birdTexture1 : SKTexture!
     var birdTexture2 : SKTexture!
-    var pipeUpTexture : SKTexture!
     var pipeDownTexture : SKTexture!
+    var pipeUpTexture : SKTexture!
     var pipeMidTexture : SKTexture!
+    
+    var problems = [Problem]()
     
     public override func didMove(to view: SKView) {
         // Set up gameIsActive node
@@ -38,50 +42,78 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         // Contact (collisions) will be handled by this class
         physicsWorld.contactDelegate = self 
         
-        pipeUpTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_up.png"))
         pipeDownTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_down.png"))
+        pipeUpTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_up.png"))
         pipeMidTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_middle.png"))
         
-        createPipes()
         initDegreeLevelTextField()
-        showProblemInCenterTextField() // Set up UITextField
         updateScoreTextField()
         setBackground() // Set background
         createPlayer() // Create player
     }
     
-    private func createPipes() {
+    private func beginPipeSpawnRepeat() {
+        let delaySpawn = SKAction.wait(forDuration: TimeInterval(1.5))
+        let spawnOnePipeSet = SKAction.run(spawnPipes)
+        let spawnThenDelay = SKAction.sequence([delaySpawn, spawnOnePipeSet])
+        let spawnThenDelayForever = SKAction.repeatForever(spawnThenDelay)
+        run(spawnThenDelayForever)
+    }
+    
+    private func setupPipeMovement() {
+        let distanceToMove = CGFloat(frame.size.width)
+        let movePipes = SKAction.moveBy(x: -distanceToMove, y:0.0, duration:TimeInterval(5.0))
+        let destroyPipes = SKAction.removeFromParent()
+        movePipesThenRemove = SKAction.sequence([movePipes, destroyPipes])
+    }
+    
+    private func generateProblem() {
+        var x = Int(arc4random_uniform(30)) + 1
+        var y = Int(arc4random_uniform(30)) + 1
+        problems.append(Problem(x: x, op: "+", y: y))
+        updateProblemInCenterTextField()
+    }
+    
+    private func spawnPipes() {
+        generateProblem()
+        
+        let scale : CGFloat = 3
         let pipeSet = SKNode()
-        pipeSet.position = CGPoint(x: frame.midX, y: frame.midY)
+        pipeSet.position = CGPoint(x: frame.midX + 450, y: frame.midY)
         pipeSet.zPosition = 0
         
+        // Set starting height of pipe set at random
+        let pipeDownHeight = maxPipeDownHeight - CGFloat(arc4random_uniform(UInt32(maxPipeDiff)))
+        
         let pipeDown = SKSpriteNode(texture: pipeDownTexture)
-        pipeDown.setScale(3)
-        pipeDown.position = CGPoint(x: 0, y: maxPipeDownHeight)
+        pipeDown.setScale(scale)
+        pipeDown.position = CGPoint(x: 0, y: pipeDownHeight)
         pipeDown.physicsBody = SKPhysicsBody(rectangleOf: pipeDown.size)
         pipeDown.physicsBody?.affectedByGravity = false
+        pipeDown.physicsBody?.isDynamic = false
         pipeDown.physicsBody?.categoryBitMask = Bitmask.pipe
         pipeDown.physicsBody?.collisionBitMask = Bitmask.player
         pipeDown.physicsBody?.contactTestBitMask = Bitmask.player
         pipeSet.addChild(pipeDown)
         
-        let rand = 0
+        let rand = arc4random_uniform(2)
         let topSlot = SKLabelNode()
         topSlot.fontSize = 40
-        topSlot.text = "17"
-        topSlot.position = CGPoint(x: 0, y: maxPipeDownHeight - CGFloat(pipeDown.size.height / 2) - 60)
-        topSlot.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 10, height: pipeYGap))
+        topSlot.text = rand == 0 ? String(problems[problems.count - 1].result()) : String(problems[problems.count - 1].badResult())
+        topSlot.position = CGPoint(x: 0, y: pipeDownHeight - CGFloat(pipeDown.size.height / 2) - 80)
+        topSlot.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 1, height: pipeYGap))
         topSlot.physicsBody?.affectedByGravity = false
         topSlot.physicsBody?.categoryBitMask = rand == 0 ? Bitmask.successSlot : Bitmask.failSlot
-        topSlot.physicsBody?.collisionBitMask = Bitmask.player
+        topSlot.physicsBody?.collisionBitMask = 0
         topSlot.physicsBody?.contactTestBitMask = Bitmask.player
         pipeSet.addChild(topSlot)
         
         let pipeMid = SKSpriteNode(texture: pipeMidTexture)
-        pipeMid.setScale(3)
-        pipeMid.position = CGPoint(x: 0, y: maxPipeDownHeight - CGFloat(pipeDown.size.height / 2) - pipeYGap - CGFloat(pipeMid.size.height / 2)) 
+        pipeMid.setScale(scale)
+        pipeMid.position = CGPoint(x: 0, y: pipeDownHeight - CGFloat(pipeDown.size.height / 2) - pipeYGap - CGFloat(pipeMid.size.height / 2)) 
         pipeMid.physicsBody = SKPhysicsBody(rectangleOf: pipeMid.size)
         pipeMid.physicsBody?.affectedByGravity = false
+        pipeMid.physicsBody?.isDynamic = false
         pipeMid.physicsBody?.categoryBitMask = Bitmask.pipe
         pipeMid.physicsBody?.collisionBitMask = Bitmask.player
         pipeMid.physicsBody?.contactTestBitMask = Bitmask.player
@@ -89,24 +121,26 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         
         let bottomSlot = SKLabelNode()
         bottomSlot.fontSize = 40
-        bottomSlot.text = "19"
-        bottomSlot.position = CGPoint(x: 0, y: maxPipeDownHeight - CGFloat(pipeDown.size.height / 2) -  pipeMid.size.height - 170)
-        bottomSlot.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 10, height: pipeYGap))
+        bottomSlot.text = rand == 1 ? String(problems[problems.count - 1].result()) : String(problems[problems.count - 1].badResult())
+        bottomSlot.position = CGPoint(x: 0, y: pipeDownHeight - CGFloat(pipeDown.size.height / 2) -  pipeMid.size.height - 190)
+        bottomSlot.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 1, height: pipeYGap))
         bottomSlot.physicsBody?.affectedByGravity = false
         bottomSlot.physicsBody?.categoryBitMask = rand == 1 ? Bitmask.successSlot : Bitmask.failSlot
-        bottomSlot.physicsBody?.collisionBitMask = Bitmask.player
+        bottomSlot.physicsBody?.collisionBitMask = 0
         bottomSlot.physicsBody?.contactTestBitMask = Bitmask.player
         pipeSet.addChild(bottomSlot)
         
         let pipeUp = SKSpriteNode(texture: pipeUpTexture)
-        pipeUp.setScale(3)
-        pipeUp.position = CGPoint(x: 0, y: maxPipeDownHeight - CGFloat(pipeDown.size.height / 2) - pipeMid.size.height - 2 * pipeYGap - CGFloat(pipeUp.size.height / 2))
+        pipeUp.setScale(scale)
+        pipeUp.position = CGPoint(x: 0, y: pipeDownHeight - CGFloat(pipeDown.size.height / 2) - pipeMid.size.height - 2 * pipeYGap - CGFloat(pipeUp.size.height / 2))
         pipeUp.physicsBody = SKPhysicsBody(rectangleOf: pipeUp.size)
         pipeUp.physicsBody?.affectedByGravity = false
+        pipeUp.physicsBody?.isDynamic = false
         pipeUp.physicsBody?.categoryBitMask = Bitmask.pipe
         pipeUp.physicsBody?.collisionBitMask = Bitmask.player
         pipeUp.physicsBody?.contactTestBitMask = Bitmask.player
         pipeSet.addChild(pipeUp)
+        pipeSet.run(movePipesThenRemove)
         game.addChild(pipeSet)
     }
     
@@ -119,14 +153,14 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         centerTextField.text = "Hello"
     }
     
-    private func showProblemInCenterTextField() {
+    private func updateProblemInCenterTextField() {
         let textFieldWidth : CGFloat = 500
         let textFieldHeight : CGFloat = 100
         centerTextField.frame = CGRect(x: frame.midX - 100, y: frame.midY - CGFloat(textFieldHeight / 2) - 250, width: textFieldWidth, height: textFieldHeight)
         centerTextField.textAlignment = .center
         centerTextField.font = UIFont.boldSystemFont(ofSize: 70)
         centerTextField.backgroundColor = UIColor.cyan
-        centerTextField.text = "10 + 7 = ?"
+        centerTextField.text = problems[0].toString()
     }
     
     private func initDegreeLevelTextField() {
@@ -151,7 +185,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     private func setBackground() {
         // Background texture
         let bg = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "bg.png")))
-        bg.setScale(5.1)
+        bg.setScale(6)
         bg.zPosition = -10
         bg.position = CGPoint(x: frame.midX, y: frame.midY)
         addChild(bg)
@@ -167,8 +201,10 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         player.position = CGPoint(x: frame.midX - 190, y: frame.midY)
         addChild(player)
         player.physicsBody = SKPhysicsBody(circleOfRadius: player.size.height / 2.0)
+        player.physicsBody?.mass = 0.03
         player.physicsBody?.affectedByGravity = false;
         player.physicsBody?.categoryBitMask = Bitmask.player
+        player.physicsBody?.collisionBitMask = Bitmask.pipe | Bitmask.world
         player.physicsBody?.contactTestBitMask = Bitmask.pipe | Bitmask.failSlot | Bitmask.successSlot
         // Set flap animation for player
         let flapAnimation = SKAction.animate(with: [birdTexture1, birdTexture2], timePerFrame: 0.4)
@@ -179,14 +215,23 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     // Update on each frame
     public override func update(_ currentTime: TimeInterval) {
         // Set rotation of player to be between -1 and 0.5   
-        player.zRotation = min( max(-1, player.physicsBody!.velocity.dy * 0.001), 0.5 )
+        if game.speed > 0 {
+            player.zRotation = min( max(-1, player.physicsBody!.velocity.dy * 0.001), 0.5 )
+        }
     }
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        game.speed = 1
-        player.physicsBody?.affectedByGravity = true
-        player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-        player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 11))
+        if !firstTouch {
+            firstTouch = true
+            game.speed = 1
+            setupPipeMovement()
+            beginPipeSpawnRepeat()
+        }
+        if game.speed > 0 {
+            player.physicsBody?.affectedByGravity = true
+            player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+            player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 11))
+        }
     }
     
     public func didBegin(_ contact: SKPhysicsContact) {
@@ -214,6 +259,14 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
                 else {
                     currentTitle = "** Zoom Lord **"
                 }
+                updateScoreTextField()
+                problems.remove(at: 0)
+                updateProblemInCenterTextField()
+            }
+            else if (contact.bodyA.categoryBitMask & Bitmask.failSlot) == Bitmask.failSlot || (contact.bodyB.categoryBitMask & Bitmask.failSlot) == Bitmask.failSlot || (contact.bodyA.categoryBitMask & Bitmask.pipe) == Bitmask.pipe || (contact.bodyB.categoryBitMask & Bitmask.pipe) == Bitmask.pipe {
+                // Stop gameplay
+                game.speed = 0
+                removeAllActions()
             }
             else {
                 

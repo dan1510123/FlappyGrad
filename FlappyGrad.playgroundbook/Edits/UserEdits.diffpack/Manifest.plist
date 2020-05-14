@@ -32,6 +32,14 @@
 				<key>File</key>
 				<string>UserModules/UserModule.playgroundmodule/Sources/Bitmasks.swift</string>
 			</dict>
+			<dict>
+				<key>File</key>
+				<string>UserModules/UserModule.playgroundmodule/Sources/RunGame.swift</string>
+			</dict>
+			<dict>
+				<key>File</key>
+				<string>UserModules/UserModule.playgroundmodule/Sources/Problem.swift</string>
+			</dict>
 		</array>
 		<key>Modified</key>
 		<array>
