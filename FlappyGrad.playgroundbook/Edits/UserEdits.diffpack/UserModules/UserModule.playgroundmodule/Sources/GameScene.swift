@@ -18,7 +18,9 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var scoreLabel : SKLabelNode!
     var centerLabel : SKLabelNode!
     var scroll : SKSpriteNode!
+    var centerSprite : SKSpriteNode!
     var game : SKNode!
+    var clicksEnabled : Bool = true
     var firstTouch : Bool = false
     
     var birdTexture1 : SKTexture! 
@@ -59,7 +61,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     
     private func fullSetup() {
         showLevelGuide()
-        setupCenterTextField()
+        setupCenterLabel()
         setupScoreTextField()
         setBackground()
         createPlayer() 
@@ -145,19 +147,23 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         return slot
     }
     
-    private func setupCenterTextField() {
+    private func setupCenterLabel() {
         let textFieldWidth : CGFloat = 500
         let textFieldHeight : CGFloat = 300
         centerLabel = SKLabelNode()
         centerLabel.fontSize = 50
         centerLabel.fontName = "AvenirNext-Bold"
         centerLabel.zPosition = 0
-        centerLabel.position = CGPoint(x: frame.midX, y: frame.midY + CGFloat(frame.size.height / 2))
-        centerLabel.text = "Hello"
+        centerLabel.position = CGPoint(x: frame.midX, y: frame.midY + CGFloat(frame.height / 2) - 80)
+        centerLabel.text = "Exam Qs"
+        centerSprite = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "center.png")))
+        centerSprite.zPosition = -5
+        centerSprite.position = CGPoint(x: frame.midX, y:  frame.midY + CGFloat(frame.height / 2) - 58)
+        addChild(centerSprite)
         addChild(centerLabel)
     }
     
-    private func gameOverCenterTextField() {
+    private func gameOverCenterLabel() {
         let textFieldWidth : CGFloat = 300
         let textFieldHeight : CGFloat = 120
         
@@ -178,7 +184,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     }
     
     private func setupProblemInCenterTextField() {
-        centerLabel.position = CGPoint(x: frame.midX, y:  frame.midY + CGFloat(frame.height / 2) - 50)
+        centerLabel.position = CGPoint(x: frame.midX, y:  frame.midY + CGFloat(frame.height / 2) - 80)
     }
     
     private func updateProblemInCenterTextField() {
@@ -187,8 +193,8 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     
     private func showLevelGuide() {
         scroll = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "scrollfull.png")))
-        scroll.zPosition = -5
-        scroll.position = CGPoint(x: frame.midX + CGFloat(frame.width / 2 - scroll.size.width / 2), y: frame.midY)
+        scroll.zPosition = 0
+        scroll.position = CGPoint(x: frame.midX + CGFloat(frame.width / 2 - scroll.size.width / 2), y: frame.midY - 50)
         addChild(scroll)
     }
     
@@ -285,15 +291,17 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     }
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if !firstTouch {
-            firstTouch = true
-            game.speed = 1
-            resetScene()
-        }
-        if game.speed > 0 {
-            player.physicsBody?.affectedByGravity = true
-            player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-            player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 11))
+        if clicksEnabled {
+            if !firstTouch {
+                firstTouch = true
+                game.speed = 1
+                resetScene()
+            }
+            if game.speed > 0 {
+                player.physicsBody?.affectedByGravity = true
+                player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+                player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 11))
+            }
         }
     }
     
@@ -328,6 +336,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
             }
             else if (contact.bodyA.categoryBitMask & Bitmask.failSlot) == Bitmask.failSlot || (contact.bodyB.categoryBitMask & Bitmask.failSlot) == Bitmask.failSlot || (contact.bodyA.categoryBitMask & Bitmask.pipe) == Bitmask.pipe || (contact.bodyB.categoryBitMask & Bitmask.pipe) == Bitmask.pipe {
                 // Stop gameplay
+                clicksEnabled = false
                 game.speed = 0
                 removeAllActions()
                 gameOverActions()
@@ -350,9 +359,8 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         hideLevelGuide()
         setupProblemInCenterTextField()
         gameOverSprite?.removeFromParent()
-        centerLabel.text = ""
-        centerLabel.fontSize = 50
-        centerLabel.fontName = "AvenirNext-Bold"
+        centerLabel.removeFromParent()
+        setupCenterLabel()
         updateScoreTextField()
         
         virus.removeAllActions()
@@ -390,12 +398,13 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         virus.run(moveVirusThenStopAnimate)
         
         showLevelGuide()
-        gameOverCenterTextField()
+        gameOverCenterLabel()
     }
     
     private func stopVirusAnimation() {
         virus.removeAllActions()
         virus.texture = SKTexture(image: #imageLiteral(resourceName: "virus_a.png"))
+        clicksEnabled = true
     }
 }
 

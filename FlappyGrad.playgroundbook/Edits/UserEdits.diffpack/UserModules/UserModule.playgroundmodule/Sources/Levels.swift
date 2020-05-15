@@ -12,5 +12,5 @@ public struct Levels {
     static let msd = Level(name: "M.S. Degree", scoreRequired: 30)
     static let phd = Level(name: "Ph.D.", scoreRequired: 50)
     static let mdphd = Level(name: "M.D. Ph.D", scoreRequired: 80)
-    static let zl = Level(name: "* Zoom Lord *", scoreRequired: 100)
+    static let zl = Level(name: "Zoom Degree", scoreRequired: 100)
 }

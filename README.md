@@ -6,7 +6,7 @@ You will play as a senior little bird who is in their last semester of college w
 
 Below is a graphic of the number of Zoom credits you will need to graduate with each type of degree (remember that you started off as a last-semester senior):
 
-![alt text](grad_levels.png)
+![alt text](images/grad_levels.png)
 
 ## How to Play
 
