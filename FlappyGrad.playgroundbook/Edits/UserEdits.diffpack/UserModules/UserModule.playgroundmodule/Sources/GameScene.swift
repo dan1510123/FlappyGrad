@@ -27,7 +27,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var pipeUpTexture : SKTexture!
     var pipeMidTexture : SKTexture!
     var virus : SKSpriteNode!
-    var gameOverSprite : SKSpriteNode!
+    var gameOverSprite : SKNode!
     var virusAnimateForever : SKAction!
     
     var problems = [Problem]()
@@ -166,14 +166,14 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         centerLabel.fontSize = 20
         centerLabel.lineBreakMode = .byWordWrapping
         centerLabel.numberOfLines = 5
-        centerLabel.preferredMaxLayoutWidth = 400
-        centerLabel.verticalAlignmentMode = .top
-        centerLabel.position = CGPoint(x: frame.midX, y: frame.midY - 100)
+        centerLabel.preferredMaxLayoutWidth = 500
+        centerLabel.verticalAlignmentMode = .center
+        centerLabel.position = CGPoint(x: frame.midX - 150, y: frame.midY - 150)
         if currentTitle == "Undergrad Senior" {
-            centerLabel.text = "Unfortunately, you were unable to graduate. Gotta brush up on those math skills.\nBetter luck next time! Click to play again."
+            centerLabel.text = "Unfortunately, you were unable to graduate. Gotta brush up on those math skills.\nBetter luck next time! For more information about coronavirus, visit \"https://www.cdc.gov/coronavirus/2019-ncov/index.html\" Click to play again."
         }
         else {
-            centerLabel.text = "Congratulations! You have graduated with a " + currentTitle + " before the effects of coronavirus inevitably caught up to you. Keep on persevering! Click to play again."
+            centerLabel.text = "Congratulations! You have graduated with a " + currentTitle + " before the effects of coronavirus inevitably caught up to you. Keep on persevering! For more information about coronavirus, visit \"https://www.cdc.gov/coronavirus/2019-ncov/index.html\" Click to play again."
         }
     }
     
@@ -241,16 +241,17 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         addChild(bg)
         
         // Virus texture
-        let v1 = SKTexture(image: #imageLiteral(resourceName: "virus.png"))
-        let v2 = SKTexture(image: #imageLiteral(resourceName: "virus2.png"))
-        let v3 = SKTexture(image: #imageLiteral(resourceName: "virus3.png"))
+        let v1 = SKTexture(image: #imageLiteral(resourceName: "virus_a.png"))
+        let v2 = SKTexture(image: #imageLiteral(resourceName: "virus_b.png"))
+        let v3 = SKTexture(image: #imageLiteral(resourceName: "virus_c.png"))
         
         virus = SKSpriteNode(texture: v1)
         virus.setScale(1)
         virus.zPosition = -5
-        virus.position = CGPoint(x: frame.midX - 550, y: frame.midY)
+        virus.position = CGPoint(x: frame.midX - 900, y: frame.midY)
         let virusAnimate = SKAction.animate(with: [v1, v2, v3], timePerFrame: 0.3)
         virusAnimateForever = SKAction.repeatForever(virusAnimate)
+        virus.run(virusAnimateForever)
         addChild(virus)
     }
     
@@ -356,7 +357,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         
         virus.removeAllActions()
         virus.run(virusAnimateForever)
-        virus.position = CGPoint(x: frame.midX - 550, y: frame.midY)
+        virus.position = CGPoint(x: frame.midX - 900, y: frame.midY)
     }
     
     private func gameOverActions() {
@@ -379,14 +380,22 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         gameOverSprite = SKSpriteNode(texture: titleIcon)
         gameOverSprite.setScale(2.5)
         gameOverSprite.zPosition = 10
-        gameOverSprite.position = CGPoint(x: frame.midX, y: frame.midY)
+        gameOverSprite.position = CGPoint(x: frame.midX - 150, y: frame.midY)
         addChild(gameOverSprite)
         
-        let distanceToMove = CGFloat(120)
+        let distanceToMove = CGFloat(1000)
         let moveVirus = SKAction.moveBy(x: distanceToMove, y:0.0, duration:TimeInterval(3))
-        virus.run(moveVirus)
+        let stopAnimate = SKAction.run(stopVirusAnimation)
+        let moveVirusThenStopAnimate = SKAction.sequence([moveVirus, stopAnimate])
+        virus.run(moveVirusThenStopAnimate)
         
+        showLevelGuide()
         gameOverCenterTextField()
+    }
+    
+    private func stopVirusAnimation() {
+        virus.removeAllActions()
+        virus.texture = SKTexture(image: #imageLiteral(resourceName: "virus_a.png"))
     }
 }
 
