@@ -7,15 +7,16 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     
     let pipeSpeed : CGFloat = 1
     let pipeYGap : CGFloat = 120
-    let maxPipeDiff : CGFloat = 140
-    let maxPipeDownHeight : CGFloat = 330
+    let maxPipeDiff : CGFloat = 70
+    let maxPipeDownHeight : CGFloat = 290
     var movePipesThenRemove : SKAction!
     
     var zoomScore : Int = 0
-    var currentTitle : String = "Undergrad Senior"
-    var scoreTextField : UITextView = UITextView()
-    var centerTextField : UITextView = UITextView()
-    var levelGuideTextField : UITextView = UITextView()
+    var currentTitle : String = Levels.ugs.name
+    var scoreUI : SKNode!
+    var statusLabel : SKLabelNode!
+    var scoreLabel : SKLabelNode!
+    var centerLabel : SKLabelNode!
     var scroll : SKSpriteNode!
     var game : SKNode!
     var firstTouch : Bool = false
@@ -26,6 +27,8 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var pipeUpTexture : SKTexture!
     var pipeMidTexture : SKTexture!
     var virus : SKSpriteNode!
+    var gameOverSprite : SKSpriteNode!
+    var virusAnimateForever : SKAction!
     
     var problems = [Problem]()
     
@@ -44,18 +47,22 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         // Contact (collisions) will be handled by this class
         physicsWorld.contactDelegate = self 
         
+        frequentTextureSetup()
+        fullSetup()
+    }
+    
+    private func frequentTextureSetup() {
         pipeDownTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_down.png"))
         pipeUpTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_up.png"))
         pipeMidTexture = SKTexture(image: #imageLiteral(resourceName: "pipe_middle.png"))
-        
-        scoreTextField.isEditable = false
-        centerTextField.isEditable = false
-        levelGuideTextField.isEditable = false
+    }
+    
+    private func fullSetup() {
         showLevelGuide()
         setupCenterTextField()
         setupScoreTextField()
-        setBackground() // Set background
-        createPlayer() // Create player
+        setBackground()
+        createPlayer() 
     }
     
     private func beginPipeSpawnRepeat() {
@@ -85,7 +92,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         
         let pipeSet = SKNode()
         pipeSet.position = CGPoint(x: frame.midX + 450, y: frame.midY)
-        pipeSet.zPosition = 0
+        pipeSet.zPosition = -8
         
         // Set starting height of pipe set at random
         let pipeDownHeight = maxPipeDownHeight - CGFloat(arc4random_uniform(UInt32(maxPipeDiff)))
@@ -125,7 +132,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     }
     
     private func spawnSlot(success: Bool, yPos: CGFloat) -> SKLabelNode {
-        let slot = SKLabelNode()
+        let slot = SKLabelNode(fontNamed: "AvenirNext-Bold")
         slot.fontSize = 40
         slot.text = success ? String(problems[problems.count - 1].result()) : String(problems[problems.count - 1].badResult())
         slot.position = CGPoint(x: 0, y: yPos)
@@ -141,59 +148,51 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     private func setupCenterTextField() {
         let textFieldWidth : CGFloat = 500
         let textFieldHeight : CGFloat = 300
-        centerTextField.frame = CGRect(x: frame.midX - 400, y: frame.midY + 250, width: textFieldWidth, height: textFieldHeight)
-        centerTextField.textAlignment = .center
-        centerTextField.backgroundColor = UIColor.red
-        centerTextField.text = "Hello"
+        centerLabel = SKLabelNode()
+        centerLabel.fontSize = 50
+        centerLabel.fontName = "AvenirNext-Bold"
+        centerLabel.zPosition = 0
+        centerLabel.position = CGPoint(x: frame.midX, y: frame.midY + CGFloat(frame.size.height / 2))
+        centerLabel.text = "Hello"
+        addChild(centerLabel)
     }
     
     private func gameOverCenterTextField() {
         let textFieldWidth : CGFloat = 300
         let textFieldHeight : CGFloat = 120
-        centerTextField.frame = CGRect(x: frame.midX, y: frame.midY + 300, width: textFieldWidth, height: textFieldHeight)
-        centerTextField.textAlignment = .center
-        centerTextField.backgroundColor = UIColor.gray
-        centerTextField.textColor = UIColor.white
-        centerTextField.font = UIFont.systemFont(ofSize: 20)
+        
+        centerLabel.zPosition = 0
+        centerLabel.fontName = "AvenirNext"
+        centerLabel.fontSize = 20
+        centerLabel.lineBreakMode = .byWordWrapping
+        centerLabel.numberOfLines = 5
+        centerLabel.preferredMaxLayoutWidth = 400
+        centerLabel.verticalAlignmentMode = .top
+        centerLabel.position = CGPoint(x: frame.midX, y: frame.midY - 100)
         if currentTitle == "Undergrad Senior" {
-            centerTextField.text = "Unfortunately, you were unable to graduate. Better brush up on those math skills.\nBetter luck next time!"
+            centerLabel.text = "Unfortunately, you were unable to graduate. Gotta brush up on those math skills.\nBetter luck next time! Click to play again."
         }
         else {
-            centerTextField.text = "Congratulations! You have graduated with a " + currentTitle + " before falling victim to the virus"
+            centerLabel.text = "Congratulations! You have graduated with a " + currentTitle + " before the effects of coronavirus inevitably caught up to you. Keep on persevering! Click to play again."
         }
     }
     
     private func setupProblemInCenterTextField() {
-        let textFieldWidth : CGFloat = 500
-        let textFieldHeight : CGFloat = 100
-        centerTextField.frame = CGRect(x: frame.midX - 100, y: frame.midY - CGFloat(textFieldHeight / 2) - 250, width: textFieldWidth, height: textFieldHeight)
-        centerTextField.textAlignment = .center
-        centerTextField.font = UIFont.boldSystemFont(ofSize: 70)
-        centerTextField.backgroundColor = UIColor.cyan
-        centerTextField.text = ""
+        centerLabel.position = CGPoint(x: frame.midX, y:  frame.midY + CGFloat(frame.height / 2) - 50)
     }
     
     private func updateProblemInCenterTextField() {
-        centerTextField.text = problems[0].toString()
+        centerLabel.text = problems[0].toString()
     }
     
     private func showLevelGuide() {
-        scroll = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "scrollwithlogos.png")))
+        scroll = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "scrollfull.png")))
         scroll.zPosition = -5
-        scroll.position = CGPoint(x: frame.midX + 250, y: frame.midY)
+        scroll.position = CGPoint(x: frame.midX + CGFloat(frame.width / 2 - scroll.size.width / 2), y: frame.midY)
         addChild(scroll)
-        
-        levelGuideTextField.isHidden = false
-        let textFieldWidth : CGFloat = 300
-        let textFieldHeight : CGFloat = 680
-        levelGuideTextField.frame = CGRect(x: frame.midX + 470, y: frame.midY - 130, width: textFieldWidth, height: textFieldHeight)
-        levelGuideTextField.font = UIFont(name: "Papyrus", size: 30)
-        levelGuideTextField.backgroundColor = nil
-        levelGuideTextField.text = "LEGENDARY\nGRAD REQS\n\n" + "Undergrad Senior  0\n\n" + "     B.S. Degree        15\n\n" + "     M.S. Degree      30\n\n" + "           Ph.D.              50\n\n" + "      M.D. Ph.D.       100\n\n" + "   * Zoom Lord *    200"
     }
     
     private func hideLevelGuide() {
-        levelGuideTextField.isHidden = true
         let distanceToMove = CGFloat(scroll.size.width + 10)
         let moveScroll = SKAction.moveBy(x: distanceToMove, y:0.0, duration:TimeInterval(1.5))
         let destroyScroll = SKAction.removeFromParent()
@@ -202,17 +201,35 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     }
     
     private func setupScoreTextField() {
-        let textFieldWidth : CGFloat = 400
-        let textFieldHeight : CGFloat = 200
-        scoreTextField.frame = CGRect(x: frame.midX - 550, y: frame.midY - CGFloat(textFieldHeight / 2) - 200, width: textFieldWidth, height: textFieldHeight)
-        scoreTextField.textAlignment = .center
-        scoreTextField.backgroundColor = UIColor.blue
-        scoreTextField.font = UIFont.boldSystemFont(ofSize: 42)
+        scoreUI = SKNode()
+        let scorebg = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "score.png")))
+        scorebg.zPosition = -4
+        scorebg.position = CGPoint(x: 0, y: 0)
+        scoreUI.addChild(scorebg)
+        
+        statusLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        statusLabel.zPosition = 0
+        statusLabel.position = CGPoint(x: 0, y: -75)
+        statusLabel.fontSize = 24
+        scoreUI.addChild(statusLabel)
+        
+        scoreLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        scoreLabel.zPosition = 0
+        scoreLabel.position = CGPoint(x: 0, y: 12)
+        scoreLabel.fontSize = 24
+        scoreUI.addChild(scoreLabel)
+        
+        let scoreX = frame.midX - CGFloat(frame.width / 2) + CGFloat(scorebg.size.width / 2)
+        let scoreY = frame.midY + CGFloat(frame.height / 2) - CGFloat(scorebg.size.height / 2)
+        
+        scoreUI.position = CGPoint(x: scoreX, y: scoreY)
+        addChild(scoreUI)
         updateScoreTextField()
     }
     
     private func updateScoreTextField() {
-        scoreTextField.text = "Zoom Credits\n" + String(zoomScore) + "\n" + currentTitle
+        scoreLabel.text = String(zoomScore)
+        statusLabel.text = currentTitle
     }
     
     private func setBackground() {
@@ -230,11 +247,10 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         
         virus = SKSpriteNode(texture: v1)
         virus.setScale(1)
-        virus.zPosition = 10
-        virus.position = CGPoint(x: frame.midX - 400, y: frame.midY)
+        virus.zPosition = -5
+        virus.position = CGPoint(x: frame.midX - 550, y: frame.midY)
         let virusAnimate = SKAction.animate(with: [v1, v2, v3], timePerFrame: 0.3)
-        let virusAnimateForever = SKAction.repeatForever(virusAnimate)
-        virus.run(virusAnimateForever)
+        virusAnimateForever = SKAction.repeatForever(virusAnimate)
         addChild(virus)
     }
     
@@ -244,7 +260,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         
         player = SKSpriteNode(texture: birdTexture1)
         player.setScale(1.6)
-        player.zPosition = 0
+        player.zPosition = -8
         player.position = CGPoint(x: frame.midX - 190, y: frame.midY)
         addChild(player)
         player.physicsBody = SKPhysicsBody(circleOfRadius: player.size.height / 2.0)
@@ -271,10 +287,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         if !firstTouch {
             firstTouch = true
             game.speed = 1
-            setupPipeMovement()
-            beginPipeSpawnRepeat()
-            setupProblemInCenterTextField()
-            hideLevelGuide()
+            resetScene()
         }
         if game.speed > 0 {
             player.physicsBody?.affectedByGravity = true
@@ -290,23 +303,23 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
                 zoomScore += 1
                 
                 /* Update the currentTitle based on zoomScore */
-                if zoomScore < 1 {
-                    currentTitle = "Undergrad Senior"
+                if zoomScore < Levels.bsd.scoreRequired {
+                    currentTitle = Levels.ugs.name
                 }
-                else if zoomScore < 2 {
-                    currentTitle = "B.S. Degree"
+                else if zoomScore < Levels.msd.scoreRequired {
+                    currentTitle = Levels.bsd.name
                 }
-                else if zoomScore < 3 {
-                    currentTitle = "M.S. Degree"
+                else if zoomScore < Levels.phd.scoreRequired {
+                    currentTitle = Levels.msd.name
                 } 
-                else if zoomScore < 100 {
-                    currentTitle = "Ph.D."
+                else if zoomScore < Levels.mdphd.scoreRequired {
+                    currentTitle = Levels.phd.name
                 }
-                else if zoomScore < 200 {
-                    currentTitle = "M.D. Ph.D."
+                else if zoomScore < Levels.zl.scoreRequired {
+                    currentTitle = Levels.mdphd.name
                 }
                 else {
-                    currentTitle = "** Zoom Lord **"
+                    currentTitle = Levels.zl.name
                 }
                 updateScoreTextField()
                 problems.remove(at: 0)
@@ -317,52 +330,63 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
                 game.speed = 0
                 removeAllActions()
                 gameOverActions()
-            }
-            else {
-                
+                firstTouch = false
             }
         }
+    }
+    
+    private func resetScene() {
+        zoomScore = 0
+        currentTitle = Levels.ugs.name
+        player.position = CGPoint(x: frame.midX - 190, y: frame.midY)
+        
+        setupPipeMovement()
+        beginPipeSpawnRepeat()
+        
+        problems.removeAll()
+        game.removeAllChildren()
+        
+        hideLevelGuide()
+        setupProblemInCenterTextField()
+        gameOverSprite?.removeFromParent()
+        centerLabel.text = ""
+        centerLabel.fontSize = 50
+        centerLabel.fontName = "AvenirNext-Bold"
+        updateScoreTextField()
+        
+        virus.removeAllActions()
+        virus.run(virusAnimateForever)
+        virus.position = CGPoint(x: frame.midX - 550, y: frame.midY)
     }
     
     private func gameOverActions() {
         var titleIcon : SKTexture!
         switch(currentTitle) {
-            case "B.S. Degree":
+            case Levels.bsd.name:
             titleIcon = SKTexture(image: #imageLiteral(resourceName: "bsd.png"))
-            case "M.S. Degree":
+            case Levels.msd.name:
                 titleIcon = SKTexture(image: #imageLiteral(resourceName: "msd.png"))
-            case "Ph.D.":
+            case Levels.phd.name:
                 titleIcon = SKTexture(image: #imageLiteral(resourceName: "phd.png"))
-            case "M.D. Ph.D.":
+            case Levels.mdphd.name:
                 titleIcon = SKTexture(image: #imageLiteral(resourceName: "mdphd.png"))
-            case "** Zoom Lord **":
-                titleIcon = SKTexture(image: #imageLiteral(resourceName: "zoomlord2.png"))
+            case Levels.zl.name:
+                titleIcon = SKTexture(image: #imageLiteral(resourceName: "zoomlord.png"))
+                currentTitle = "Zoom Lord Degree"
             default:
                 titleIcon = SKTexture(image: #imageLiteral(resourceName: "ugs.png"))
         }
-        var titleSprite = SKSpriteNode(texture: titleIcon)
-        titleSprite.setScale(2.5)
-        titleSprite.zPosition = 10
-        titleSprite.position = CGPoint(x: frame.midX, y: frame.midY)
-        addChild(titleSprite)
+        gameOverSprite = SKSpriteNode(texture: titleIcon)
+        gameOverSprite.setScale(2.5)
+        gameOverSprite.zPosition = 10
+        gameOverSprite.position = CGPoint(x: frame.midX, y: frame.midY)
+        addChild(gameOverSprite)
         
         let distanceToMove = CGFloat(120)
         let moveVirus = SKAction.moveBy(x: distanceToMove, y:0.0, duration:TimeInterval(3))
         virus.run(moveVirus)
         
         gameOverCenterTextField()
-    }
-    
-    public func getScoreTextField() -> UITextView {
-        return scoreTextField
-    }
-    
-    public func getCenterTextField() -> UITextView {
-        return centerTextField
-    }
-    
-    public func getLevelGuideTextField() -> UITextView {
-        return levelGuideTextField
     }
 }
 

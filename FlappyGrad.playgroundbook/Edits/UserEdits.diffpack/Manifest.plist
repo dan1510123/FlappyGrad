@@ -40,6 +40,10 @@
 				<key>File</key>
 				<string>UserModules/UserModule.playgroundmodule/Sources/Main.swift</string>
 			</dict>
+			<dict>
+				<key>File</key>
+				<string>UserModules/UserModule.playgroundmodule/Sources/Levels.swift</string>
+			</dict>
 		</array>
 		<key>Modified</key>
 		<array>
