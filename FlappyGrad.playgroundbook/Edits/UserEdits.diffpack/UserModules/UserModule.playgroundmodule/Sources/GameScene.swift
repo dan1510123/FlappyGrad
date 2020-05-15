@@ -16,7 +16,8 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var scoreUI : SKNode!
     var statusLabel : SKLabelNode!
     var scoreLabel : SKLabelNode!
-    var centerLabel : SKLabelNode!
+    var problemLabel : SKLabelNode!
+    var textLabel : SKLabelNode!
     var scroll : SKSpriteNode!
     var centerSprite : SKSpriteNode!
     var game : SKNode!
@@ -63,6 +64,8 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         showLevelGuide()
         setupCenterLabel()
         setupScoreTextField()
+        updateScoreTextField()
+        setupTextLabel()
         setBackground()
         createPlayer() 
     }
@@ -150,45 +153,73 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     private func setupCenterLabel() {
         let textFieldWidth : CGFloat = 500
         let textFieldHeight : CGFloat = 300
-        centerLabel = SKLabelNode()
-        centerLabel.fontSize = 50
-        centerLabel.fontName = "AvenirNext-Bold"
-        centerLabel.zPosition = 0
-        centerLabel.position = CGPoint(x: frame.midX, y: frame.midY + CGFloat(frame.height / 2) - 80)
-        centerLabel.text = "Exam Qs"
+        problemLabel = SKLabelNode()
+        problemLabel.fontSize = 50
+        problemLabel.fontName = "AvenirNext-Bold"
+        problemLabel.zPosition = 0
+        problemLabel.position = CGPoint(x: frame.midX, y: frame.midY + CGFloat(frame.height / 2) - 80)
+        problemLabel.text = "Exam Qs"
         centerSprite = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "center.png")))
-        centerSprite.zPosition = -5
+        centerSprite.zPosition = -4
         centerSprite.position = CGPoint(x: frame.midX, y:  frame.midY + CGFloat(frame.height / 2) - 58)
         addChild(centerSprite)
-        addChild(centerLabel)
-    }
-    
-    private func gameOverCenterLabel() {
-        let textFieldWidth : CGFloat = 300
-        let textFieldHeight : CGFloat = 120
-        
-        centerLabel.zPosition = 0
-        centerLabel.fontName = "AvenirNext"
-        centerLabel.fontSize = 20
-        centerLabel.lineBreakMode = .byWordWrapping
-        centerLabel.numberOfLines = 5
-        centerLabel.preferredMaxLayoutWidth = 500
-        centerLabel.verticalAlignmentMode = .center
-        centerLabel.position = CGPoint(x: frame.midX - 150, y: frame.midY - 150)
-        if currentTitle == "Undergrad Senior" {
-            centerLabel.text = "Unfortunately, you were unable to graduate. Gotta brush up on those math skills.\nBetter luck next time! For more information about coronavirus, visit \"https://www.cdc.gov/coronavirus/2019-ncov/index.html\" Click to play again."
-        }
-        else {
-            centerLabel.text = "Congratulations! You have graduated with a " + currentTitle + " before the effects of coronavirus inevitably caught up to you. Keep on persevering! For more information about coronavirus, visit \"https://www.cdc.gov/coronavirus/2019-ncov/index.html\" Click to play again."
-        }
+        addChild(problemLabel)
     }
     
     private func setupProblemInCenterTextField() {
-        centerLabel.position = CGPoint(x: frame.midX, y:  frame.midY + CGFloat(frame.height / 2) - 80)
+        problemLabel.position = CGPoint(x: frame.midX, y:  frame.midY + CGFloat(frame.height / 2) - 80)
     }
     
     private func updateProblemInCenterTextField() {
-        centerLabel.text = problems[0].toString()
+        problemLabel.text = problems[0].toString() + "?"
+    }
+    
+    private func showCorrectAnswer() {
+        problemLabel.text = problems[0].toString() + String(problems[0].result())
+    }
+    
+    private func setupTextLabel() {
+        let textFieldWidth : CGFloat = 300
+        let textFieldHeight : CGFloat = 120
+        
+        textLabel = SKLabelNode()
+        textLabel.zPosition = 0
+        textLabel.fontName = "Noteworthy-Light"
+        textLabel.fontSize = 19
+        textLabel.fontColor = UIColor.black
+        textLabel.lineBreakMode = .byWordWrapping
+        textLabel.numberOfLines = 6
+        textLabel.preferredMaxLayoutWidth = 480
+        textLabel.verticalAlignmentMode = .center
+        textLabel.text = "You are a flapping bird in the last semester of college when corona suddenly breaks out! Courses have become remote over Zoom. You must now finish all of your final exams, whose questions will be shown above, to earn your Zoom credits. Will you get enough credits to graduate before the effects of corona catch up to you?\n                                  CLICK TO PLAY!"
+        
+        var textBackgroundSprite = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "intro.png")))
+        textBackgroundSprite.zPosition = -4
+        textLabel.addChild(textBackgroundSprite)
+        textLabel.position = CGPoint(x: frame.midX - 160, y: frame.midY - 120)
+        addChild(textLabel)
+    }
+    
+    private func createGameOverLabel() {
+        let textFieldWidth : CGFloat = 300
+        let textFieldHeight : CGFloat = 120
+        
+        textLabel = SKLabelNode()
+        textLabel.zPosition = 0
+        textLabel.fontName = "AvenirNext"
+        textLabel.fontSize = 20
+        textLabel.lineBreakMode = .byWordWrapping
+        textLabel.numberOfLines = 5
+        textLabel.preferredMaxLayoutWidth = 530
+        textLabel.verticalAlignmentMode = .center
+        textLabel.position = CGPoint(x: frame.midX - 150, y: frame.midY - 150)
+        if currentTitle == "Undergrad Senior" {
+            textLabel.text = "Unfortunately, you were unable to graduate. Gotta brush up on those math skills. Better luck next time!\nFor more information about coronavirus, visit\n\"https://www.cdc.gov/coronavirus/2019-ncov/index.html\"\nClick to play again!"
+        }
+        else {
+            textLabel.text = "Congratulations! You have graduated with a " + currentTitle + " before the effects of coronavirus inevitably caught up to you. Keep on persevering!\nFor more information about coronavirus, visit\n\"https://www.cdc.gov/coronavirus/2019-ncov/index.html\"\nClick to play again!"
+        }
+        addChild(textLabel)
     }
     
     private func showLevelGuide() {
@@ -230,7 +261,6 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         
         scoreUI.position = CGPoint(x: scoreX, y: scoreY)
         addChild(scoreUI)
-        updateScoreTextField()
     }
     
     private func updateScoreTextField() {
@@ -346,7 +376,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     }
     
     private func resetScene() {
-        zoomScore = 0
+        zoomScore = 99
         currentTitle = Levels.ugs.name
         player.position = CGPoint(x: frame.midX - 190, y: frame.midY)
         
@@ -359,9 +389,9 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         hideLevelGuide()
         setupProblemInCenterTextField()
         gameOverSprite?.removeFromParent()
-        centerLabel.removeFromParent()
-        setupCenterLabel()
+        textLabel?.removeFromParent()
         updateScoreTextField()
+        problemLabel.text = "Exam Qs"
         
         virus.removeAllActions()
         virus.run(virusAnimateForever)
@@ -392,13 +422,14 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         addChild(gameOverSprite)
         
         let distanceToMove = CGFloat(1000)
-        let moveVirus = SKAction.moveBy(x: distanceToMove, y:0.0, duration:TimeInterval(3))
+        let moveVirus = SKAction.moveBy(x: distanceToMove, y:0.0, duration:TimeInterval(2))
         let stopAnimate = SKAction.run(stopVirusAnimation)
         let moveVirusThenStopAnimate = SKAction.sequence([moveVirus, stopAnimate])
         virus.run(moveVirusThenStopAnimate)
         
         showLevelGuide()
-        gameOverCenterLabel()
+        showCorrectAnswer()
+        createGameOverLabel()
     }
     
     private func stopVirusAnimation() {

@@ -8,11 +8,28 @@ Below is a graphic of the number of Zoom credits you will need to graduate with 
 
 ![alt text](images/grad_levels.png)
 
-## How to Play
+## Rules
+1. Click to jump
+2. Do not hit the pipes (like normal flappy bird)
+3. Fly through the slot with the correct answer to the math problem at the top
 
+![alt text](images/in_game_screenshot.png)
 
+## Start screen
+The intro screen:
+
+![alt text](images/start_page.png)
+
+## GameOver
+Example of a gameover screen:
+
+![alt text](images/game_over.png)
 
 ## Graphics
 All assets in this game were created by me using **krita**
-I wanted to honor the original flappy bird so I created all assets with pixelart ranging from 10x10 to 60x60 pixelart.
+I wanted to honor the original flappy bird so I created all assets with pixelart ranging from 10x10 to 100x100 pixelart. Below is just one example of the assets I created:
+
+![alt text](images/bird.png)![alt text](images/bird.png)![alt text](images/bird.png)
+
+
 

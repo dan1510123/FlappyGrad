@@ -44,6 +44,6 @@ public class Problem {
     }
     
     public func toString() -> String {
-        return String(x) + " " + op + " " + String(y) + " = ?"
+        return String(x) + " " + op + " " + String(y) + " = "
     }
 }
