@@ -376,7 +376,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     }
     
     private func resetScene() {
-        zoomScore = 99
+        zoomScore = 0
         currentTitle = Levels.ugs.name
         player.position = CGPoint(x: frame.midX - 190, y: frame.midY)
         
