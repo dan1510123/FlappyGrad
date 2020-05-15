@@ -10,6 +10,8 @@ Below is a graphic of the number of Zoom credits you will need to graduate with 
 
 ## How to Play
 
+
+
 ## Graphics
 All assets in this game were created by me using **krita**
 I wanted to honor the original flappy bird so I created all assets with pixelart ranging from 10x10 to 60x60 pixelart.
