@@ -18,6 +18,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     var scoreLabel : SKLabelNode!
     var problemLabel : SKLabelNode!
     var textLabel : SKLabelNode!
+    var textBackgroundSprite : SKSpriteNode!
     var scroll : SKSpriteNode!
     var centerSprite : SKSpriteNode!
     var game : SKNode!
@@ -193,7 +194,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         textLabel.verticalAlignmentMode = .center
         textLabel.text = "You are a flapping bird in the last semester of college when corona suddenly breaks out! Courses have become remote over Zoom. You must now finish all of your final exams, whose questions will be shown above, to earn your Zoom credits. Will you get enough credits to graduate before the effects of corona catch up to you?\n                                  CLICK TO PLAY!"
         
-        var textBackgroundSprite = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "intro.png")))
+        textBackgroundSprite = SKSpriteNode(texture: SKTexture(image: #imageLiteral(resourceName: "intro.png")))
         textBackgroundSprite.zPosition = -4
         textLabel.addChild(textBackgroundSprite)
         textLabel.position = CGPoint(x: frame.midX - 160, y: frame.midY - 120)
@@ -206,19 +207,21 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         
         textLabel = SKLabelNode()
         textLabel.zPosition = 0
-        textLabel.fontName = "AvenirNext"
-        textLabel.fontSize = 20
+        textLabel.fontName = "Noteworthy-Light"
+        textLabel.fontSize = 19
+        textLabel.fontColor = UIColor.black
         textLabel.lineBreakMode = .byWordWrapping
-        textLabel.numberOfLines = 5
-        textLabel.preferredMaxLayoutWidth = 530
+        textLabel.numberOfLines = 6
+        textLabel.preferredMaxLayoutWidth = 480
         textLabel.verticalAlignmentMode = .center
-        textLabel.position = CGPoint(x: frame.midX - 150, y: frame.midY - 150)
+        textLabel.position = CGPoint(x: frame.midX - 150, y: frame.midY - 170)
         if currentTitle == "Undergrad Senior" {
             textLabel.text = "Unfortunately, you were unable to graduate. Gotta brush up on those math skills. Better luck next time!\nFor more information about coronavirus, visit\n\"https://www.cdc.gov/coronavirus/2019-ncov/index.html\"\nClick to play again!"
         }
         else {
             textLabel.text = "Congratulations! You have graduated with a " + currentTitle + " before the effects of coronavirus inevitably caught up to you. Keep on persevering!\nFor more information about coronavirus, visit\n\"https://www.cdc.gov/coronavirus/2019-ncov/index.html\"\nClick to play again!"
         }
+        textLabel.addChild(textBackgroundSprite)
         addChild(textLabel)
     }
     
