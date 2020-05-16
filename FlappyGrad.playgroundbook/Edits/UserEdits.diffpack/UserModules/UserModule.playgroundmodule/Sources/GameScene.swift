@@ -402,7 +402,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         var titleIcon : SKTexture!
         switch(currentTitle) {
             case Levels.bsd.name:
-            titleIcon = SKTexture(image: #imageLiteral(resourceName: "bsd.png"))
+                titleIcon = SKTexture(image: #imageLiteral(resourceName: "bsd.png"))
             case Levels.msd.name:
                 titleIcon = SKTexture(image: #imageLiteral(resourceName: "msd.png"))
             case Levels.phd.name:

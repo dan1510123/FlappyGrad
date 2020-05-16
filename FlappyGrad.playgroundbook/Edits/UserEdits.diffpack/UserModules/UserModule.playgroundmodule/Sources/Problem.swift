@@ -11,15 +11,15 @@ public class Problem {
     public func result() -> Int {
         switch(op) {
             case "*":
-            return x * y
+                return x * y
             case "+":
-            return x + y
+                return x + y
             case "-":
-            return x - y
+                return x - y
             case "%":
-            return x % y
+                return x % y
             default:
-            return 0
+                return 0
         }
     }
     
@@ -27,19 +27,19 @@ public class Problem {
         let rand4 = Int.random(in: 1..<7)
         switch(rand4) {
             case 1:
-            return result() + x
+                return result() + x
             case 2:
-            return result() - x
+                return result() - x
             case 3:
-            return result() + y
+                return result() + y
             case 4:
-            return result() - y
+                return result() - y
             case 5:
-            return result() + Int.random(in: 1..<11)
+                return result() + Int.random(in: 1..<11)
             case 6:
-            return result() + Int.random(in: -10..<0)
+                return result() + Int.random(in: -10..<0)
             default:
-            return 0
+                return 0
         }
     }
     
