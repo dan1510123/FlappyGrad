@@ -31,8 +31,14 @@ Example of a gameover screen:
 
 ![alt text](images/game_over.png)
 
-## Graphics
-All assets in this game were created by me using **krita**
+## Assets
+All graphics in this game were created by me using **krita**
 I wanted to honor the original flappy bird so I created all assets with pixelart ranging from 10x10 to 100x100 pixelart. Below is just one example of the assets I created:
 
 ![alt text](images/bird.png)![alt text](images/bird.png)![alt text](images/bird.png)
+
+Credit for the sounds / music go to these different free sound websites:
+Background music: https://www.bensound.com/royalty-free-music/track/a-new-beginning
+Game Over sound: https://freesound.org/people/josepharaoh99/sounds/364929/
+Flap sound: https://freesound.org/people/josepharaoh99/sounds/362328/
+

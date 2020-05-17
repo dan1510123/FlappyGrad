@@ -1,5 +1,6 @@
 // Code inside modules can be shared between pages and other source files.
 import SpriteKit
+import AVFoundation
 
 public class GameScene : SKScene, SKPhysicsContactDelegate {
     /* Global fields */
@@ -36,7 +37,35 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
     
     var problems = [Problem]()
     
+    var backgroundSong : AVAudioPlayer!
+    var gameOverSound : AVAudioPlayer!
+    var flapSound : AVAudioPlayer!
+    
     public override func didMove(to view: SKView) {
+        // Music from https://www.bensound.com/royalty-free-music/track/a-new-beginning
+        let bgSoundPath = Bundle.main.path(forResource: "song.mp3", ofType:nil)!
+        let bgSoundUrl = URL(fileURLWithPath: bgSoundPath)
+        
+        // Game over sound from https://freesound.org/people/josepharaoh99/sounds/364929/
+        let gameOverSoundPath = Bundle.main.path(forResource: "gameOver.mp3", ofType:nil)!
+        let gameOverSoundUrl = URL(fileURLWithPath: gameOverSoundPath)
+        
+        // Bird flap / jump sound from https://freesound.org/people/josepharaoh99/sounds/362328/
+        let flapSoundPath = Bundle.main.path(forResource: "flap.mp3", ofType:nil)!
+        let flapSoundUrl = URL(fileURLWithPath: flapSoundPath)
+        
+        do {
+            backgroundSong = try AVAudioPlayer(contentsOf: bgSoundUrl)
+            backgroundSong?.numberOfLoops = -1
+            backgroundSong?.volume = 0.5
+            backgroundSong?.play()
+            gameOverSound = try AVAudioPlayer(contentsOf: gameOverSoundUrl)
+            gameOverSound?.volume = 0.4
+            flapSound = try AVAudioPlayer(contentsOf: flapSoundUrl)
+            flapSound?.volume = 0.3
+        } catch {
+            // Couldn't load music
+        }
         // Set up gameIsActive node
         game = SKNode()
         game.speed = 0
@@ -334,6 +363,11 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
                 player.physicsBody?.affectedByGravity = true
                 player.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
                 player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 11))
+                if flapSound.isPlaying {
+                    flapSound.stop()
+                }
+                flapSound.currentTime = 0
+                flapSound.play()     
             }
         }
     }
@@ -369,6 +403,7 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
             }
             else if (contact.bodyA.categoryBitMask & Bitmask.failSlot) == Bitmask.failSlot || (contact.bodyB.categoryBitMask & Bitmask.failSlot) == Bitmask.failSlot || (contact.bodyA.categoryBitMask & Bitmask.pipe) == Bitmask.pipe || (contact.bodyB.categoryBitMask & Bitmask.pipe) == Bitmask.pipe {
                 // Stop gameplay
+                gameOverSound.play()
                 clicksEnabled = false
                 game.speed = 0
                 removeAllActions()
@@ -399,6 +434,9 @@ public class GameScene : SKScene, SKPhysicsContactDelegate {
         virus.removeAllActions()
         virus.run(virusAnimateForever)
         virus.position = CGPoint(x: frame.midX - 900, y: frame.midY)
+        
+        backgroundSong?.stop()
+        backgroundSong?.play()
     }
     
     private func gameOverActions() {
